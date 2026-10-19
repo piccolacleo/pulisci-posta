@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f5fbf">
+  <title>Pulisci posta</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icona.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icona-192.png">
+  <link rel="stylesheet" href="stile.css">
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="testata">
+    <h1>Pulisci posta</h1>
+    <nav class="schede" aria-label="Casella">
+      <button type="button" class="scheda" data-casella="gmail" aria-pressed="true">Gmail</button>
+      <button type="button" class="scheda" data-casella="hotmail" aria-pressed="false">Hotmail</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="riquadro" id="accesso">
+      <p id="stato-accesso"></p>
+      <button type="button" id="entra" class="pulsante principale"></button>
+      <button type="button" id="esci" class="pulsante secondario" hidden>Esci</button>
+    </section>
+
+    <section class="riquadro" id="scelta" hidden>
+      <fieldset class="cartelle">
+        <legend>Quale cartella</legend>
+        <label><input type="radio" name="cartella" value="arrivo" checked> Posta in arrivo</label>
+        <label><input type="radio" name="cartella" value="indesiderata"> Posta indesiderata</label>
+      </fieldset>
+      <label class="quante">Quante mail guardare
+        <select id="quante">
+          <option value="200">le ultime 200</option>
+          <option value="500" selected>le ultime 500</option>
+          <option value="1000">le ultime 1000</option>
+          <option value="2000">le ultime 2000</option>
+        </select>
+      </label>
+      <p class="nota" id="nota-tempo"></p>
+      <button type="button" id="analizza" class="pulsante principale">Raggruppa i mittenti</button>
+    </section>
+
+    <section class="riquadro" id="avanzamento" hidden aria-live="polite">
+      <p id="testo-avanzamento"></p>
+      <progress id="barra-avanzamento" max="100" value="0"></progress>
+    </section>
+
+    <p class="messaggio" id="messaggio" role="status" hidden></p>
+
+    <section id="risultati" hidden>
+      <p id="riepilogo"></p>
+      <p class="nota">Le segnalazioni sono solo un aiuto: anche nella posta indesiderata finiscono mittenti veri. Guarda prima di selezionare.</p>
+      <label class="filtro"><input type="checkbox" id="solo-sospetti"> Mostra solo i domini sospetti</label>
+      <ul id="gruppi" class="gruppi"></ul>
+    </section>
+  </main>
+
+  <footer class="barra" id="barra" hidden>
+    <span id="conta-selezione"></span>
+    <button type="button" id="cestina" class="pulsante pericolo">Sposta nel cestino</button>
+  </footer>
+</body>
+</html>

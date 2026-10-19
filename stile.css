@@ -1,0 +1,165 @@
+:root {
+  --sfondo: #f4f6f9;
+  --superficie: #ffffff;
+  --testo: #1b1f24;
+  --tenue: #5b6470;
+  --bordo: #d8dde4;
+  --principale: #1f5fbf;
+  --principale-testo: #ffffff;
+  --pericolo: #b42318;
+  --sospetto-sfondo: #fff4e5;
+  --sospetto-testo: #8a4b00;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sfondo: #111418;
+    --superficie: #1b2027;
+    --testo: #e7eaee;
+    --tenue: #9aa4b1;
+    --bordo: #313844;
+    --principale: #5b9bff;
+    --principale-testo: #0b1220;
+    --pericolo: #ff7a6b;
+    --sospetto-sfondo: #3a2a12;
+    --sospetto-testo: #ffc773;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--sfondo);
+  color: var(--testo);
+  padding-bottom: 96px;
+}
+
+.testata {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--superficie);
+  border-bottom: 1px solid var(--bordo);
+  padding: 12px 16px;
+}
+
+h1 { font-size: 1.3rem; margin: 0 0 10px; }
+
+.schede { display: flex; gap: 8px; }
+
+.scheda {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--testo);
+  font: inherit;
+  font-weight: 600;
+}
+
+.scheda[aria-pressed="true"] {
+  background: var(--principale);
+  border-color: var(--principale);
+  color: var(--principale-testo);
+}
+
+main { padding: 16px; max-width: 720px; margin: 0 auto; }
+
+.riquadro {
+  background: var(--superficie);
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.riquadro p:first-child { margin-top: 0; }
+
+.pulsante {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 600;
+}
+
+.pulsante:disabled { opacity: 0.5; }
+.principale { background: var(--principale); color: var(--principale-testo); }
+.secondario { background: transparent; color: var(--testo); border-color: var(--bordo); }
+.pericolo { background: var(--pericolo); color: #ffffff; margin: 0; width: auto; padding: 0 18px; }
+
+.cartelle { border: 0; margin: 0; padding: 0; }
+.cartelle legend { font-weight: 600; margin-bottom: 6px; }
+.cartelle label, .filtro { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+
+.quante { display: block; margin-top: 10px; font-weight: 600; }
+.quante select { display: block; width: 100%; min-height: 44px; margin-top: 6px; font: inherit; }
+
+input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; flex: none; }
+
+.nota { color: var(--tenue); font-size: 0.92rem; }
+
+progress { width: 100%; height: 14px; }
+
+.messaggio {
+  background: var(--superficie);
+  border: 1px solid var(--bordo);
+  border-left: 4px solid var(--principale);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.messaggio.errore { border-left-color: var(--pericolo); }
+
+.gruppi { list-style: none; margin: 0; padding: 0; }
+
+.gruppo {
+  background: var(--superficie);
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+}
+
+.gruppo.sospetto { border-color: var(--sospetto-testo); }
+
+.riga { display: flex; align-items: flex-start; gap: 12px; }
+.riga label { display: flex; gap: 12px; align-items: flex-start; flex: 1; min-width: 0; }
+.dominio { font-weight: 700; overflow-wrap: anywhere; }
+.conteggio { color: var(--tenue); font-size: 0.92rem; }
+
+.motivi { margin: 6px 0 0 34px; padding: 6px 10px; border-radius: 8px; background: var(--sospetto-sfondo); color: var(--sospetto-testo); font-size: 0.9rem; }
+.motivi ul { margin: 0; padding-left: 18px; }
+
+details { margin: 6px 0 0 34px; }
+summary { min-height: 40px; display: flex; align-items: center; color: var(--principale); font-weight: 600; cursor: pointer; }
+
+.mittenti { list-style: none; margin: 0; padding: 0; }
+.mittenti li { padding: 8px 0; border-top: 1px solid var(--bordo); }
+.mittenti label { display: flex; gap: 12px; align-items: flex-start; }
+.indirizzo { overflow-wrap: anywhere; }
+.dettaglio { display: block; color: var(--tenue); font-size: 0.88rem; overflow-wrap: anywhere; }
+
+.barra {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--superficie);
+  border-top: 1px solid var(--bordo);
+  min-height: 72px;
+}
+
+[hidden] { display: none !important; }
