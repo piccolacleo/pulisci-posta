@@ -4,7 +4,8 @@ Pagina web per il telefono che entra in una casella Gmail o Hotmail, raggruppa l
 
 - **Nessun server**: la pagina gira tutta nel browser, e la posta va dal telefono a Google o a Microsoft senza passare da nessun altro.
 - **Solo nel cestino** (Cestino di Gmail, Posta eliminata di Hotmail), mai la cancellazione definitiva: un errore si recupera.
-- **Segnala i domini sospetti** (finali insoliti, lettere doppie strane, indirizzi a caso, nomi di marchi con un dominio che non c'entra, errori di battitura o il proprio indirizzo nell'oggetto) senza selezionare niente da sola, e senza un pulsante "seleziona tutto": anche nella posta indesiderata finiscono mittenti veri.
+- **Nella posta indesiderata segnala i domini sospetti** (finali insoliti, lettere doppie strane, indirizzi a caso, nomi di marchi con un dominio che non c'entra, errori di battitura o il proprio indirizzo nell'oggetto) senza selezionare niente da sola, e senza un pulsante "seleziona tutto": anche lì finiscono mittenti veri.
+- **Nella posta in arrivo non segnala niente**, mostra solo l'elenco: lì si tolgono newsletter e conferme d'ordine di mittenti veri, e i criteri di sospetto darebbero quasi solo falsi allarmi.
 - **Non offre "annulla iscrizione"**: su una mail di spam conferma a chi la manda che l'indirizzo è vivo.
 
 ## File

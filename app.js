@@ -42,7 +42,7 @@ const CASELLE = {
   },
 };
 
-const nuovaCasella = () => ({ accesso: null, indirizzo: '', gruppi: null, letti: 0, selezionati: new Set(), aperti: new Set() });
+const nuovaCasella = () => ({ accesso: null, indirizzo: '', cartella: 'arrivo', gruppi: null, letti: 0, selezionati: new Set(), aperti: new Set() });
 
 const stato = {
   attiva: 'gmail',
@@ -123,7 +123,8 @@ async function analizza() {
   try {
     const messaggi = await def.leggi(s.accesso.token, cartella, quante,
       (fatti, totale) => avanza(`Leggo le mail: ${fatti} di ${totale}`, fatti / totale));
-    s.gruppi = raggruppa(messaggi, s.indirizzo);
+    s.cartella = cartella;
+    s.gruppi = raggruppa(messaggi, s.indirizzo, cartella === 'indesiderata');
     s.letti = messaggi.length;
     s.selezionati.clear();
     s.aperti.clear();
@@ -253,12 +254,18 @@ function disegnaGruppi() {
   lista.replaceChildren();
   $('#risultati').hidden = !s.gruppi || !s.accesso;
   if (!s.gruppi) return;
+  // Le segnalazioni solo nella posta indesiderata: nella posta in arrivo i mittenti sono quasi tutti veri.
+  const indesiderata = s.cartella === 'indesiderata';
+  $('#nota-sospetti').hidden = !indesiderata;
+  $('#filtro-sospetti').hidden = !indesiderata;
   const sospetti = s.gruppi.filter(g => g.motivi.length).length;
-  $('#riepilogo').textContent = s.gruppi.length
-    ? `${s.letti} mail da ${s.gruppi.length === 1 ? 'un dominio' : `${s.gruppi.length} domini`}. `
-      + (sospetti === 1 ? 'Un dominio sembra sospetto.' : `${sospetti} domini sembrano sospetti.`)
-    : 'In questa cartella non c’è niente.';
-  const soloSospetti = $('#solo-sospetti').checked;
+  const riepilogo = [`${s.letti} mail da ${s.gruppi.length === 1 ? 'un dominio' : `${s.gruppi.length} domini`}.`];
+  if (indesiderata) {
+    riepilogo.push(sospetti === 0 ? 'Nessun dominio sembra sospetto.'
+      : sospetti === 1 ? 'Un dominio sembra sospetto.' : `${sospetti} domini sembrano sospetti.`);
+  }
+  $('#riepilogo').textContent = s.gruppi.length ? riepilogo.join(' ') : 'In questa cartella non c’è niente.';
+  const soloSospetti = indesiderata && $('#solo-sospetti').checked;
   for (const g of s.gruppi) {
     if (soloSospetti && !g.motivi.length) continue;
     lista.append(elementoGruppo(g, s));

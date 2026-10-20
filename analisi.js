@@ -139,8 +139,10 @@ export function problemiOggetto(oggetto, mioIndirizzo) {
 }
 
 // messaggi: [{ id, nome, indirizzo, oggetto }]
-// Restituisce i gruppi per dominio, dal più numeroso, ognuno con i suoi mittenti e i motivi di sospetto.
-export function raggruppa(messaggi, mioIndirizzo) {
+// Restituisce i gruppi per dominio, dal più numeroso, ognuno con i suoi mittenti.
+// Con `segnala` (posta indesiderata) aggiunge i motivi di sospetto. Nella posta in arrivo no: lì si tolgono
+// newsletter e conferme d'ordine di mittenti veri, e le segnalazioni sarebbero quasi tutte falsi allarmi.
+export function raggruppa(messaggi, mioIndirizzo, segnala = true) {
   const gruppi = new Map();
   for (const m of messaggi) {
     const dominio = dominioBase(m.indirizzo);
@@ -158,6 +160,7 @@ export function raggruppa(messaggi, mioIndirizzo) {
     mittente.ids.push(m.id);
     if (m.nome) mittente.nomi.add(m.nome);
     if (m.oggetto && mittente.oggetti.length < 3) mittente.oggetti.push(m.oggetto);
+    if (!segnala) continue;
 
     const marchio = marchioFuoriPosto(m.nome, m.indirizzo, dominio);
     if (marchio) gruppo.motivi.set('marchio', `usa il nome ${marchio}, ma il dominio non è di ${marchio}`);
@@ -170,7 +173,7 @@ export function raggruppa(messaggi, mioIndirizzo) {
     }
   }
 
-  for (const gruppo of gruppi.values()) {
+  for (const gruppo of segnala ? gruppi.values() : []) {
     const fine = finale(gruppo.dominio);
     if (FINALI_INSOLITI.has(fine)) gruppo.motivi.set('finale', `dominio che finisce in “.${fine}”`);
     if (DOPPIE_STRANE.test(nomeDelDominio(gruppo.dominio))) gruppo.motivi.set('doppie', 'lettere doppie strane nel dominio');
