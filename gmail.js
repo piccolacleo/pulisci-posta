@@ -1,9 +1,12 @@
 // Gmail: accesso con la libreria ufficiale di Google (modello a token, nessun server) e chiamate all'API.
 
 import { chiama, inParallelo, salvaAccesso, leggiAccesso, cancellaAccesso } from './rete.js';
-import { separaMittente } from './analisi.js';
+import { separaMittente, leggiDisiscrizione } from './analisi.js';
 
-const PERMESSO = 'https://www.googleapis.com/auth/gmail.modify';
+// gmail.modify per leggere e cestinare, gmail.settings.basic per creare i filtri che bloccano un mittente.
+const PERMESSO_POSTA = 'https://www.googleapis.com/auth/gmail.modify';
+const PERMESSO_FILTRI = 'https://www.googleapis.com/auth/gmail.settings.basic';
+const PERMESSI = `${PERMESSO_POSTA} ${PERMESSO_FILTRI}`;
 const BASE = 'https://gmail.googleapis.com/gmail/v1/users/me';
 const CHIAVE = 'pulisci-posta.gmail';
 
@@ -23,8 +26,8 @@ function rispostaToken(risposta) {
     attesa.ko(new Error(`Accesso a Gmail non riuscito (${risposta.error}).`));
     return;
   }
-  if (!google.accounts.oauth2.hasGrantedAllScopes(risposta, PERMESSO)) {
-    attesa.ko(new Error('Senza il permesso di gestire la posta la pagina non può lavorare: rientra e lascia la spunta sul permesso.'));
+  if (!google.accounts.oauth2.hasGrantedAllScopes(risposta, PERMESSO_POSTA, PERMESSO_FILTRI)) {
+    attesa.ko(new Error('Senza i permessi di gestire la posta e i filtri la pagina non può lavorare: rientra e lascia le spunte su entrambi.'));
     return;
   }
   const dati = { token: risposta.access_token, scade: Date.now() + Number(risposta.expires_in) * 1000 };
@@ -50,7 +53,7 @@ export function preparaGmail(clientId) {
       if (window.google?.accounts?.oauth2) {
         clientToken = google.accounts.oauth2.initTokenClient({
           client_id: clientId,
-          scope: PERMESSO,
+          scope: PERMESSI,
           callback: rispostaToken,
           error_callback: erroreFinestra,
         });
@@ -97,10 +100,15 @@ export async function leggiGmail(token, cartella, quante, avanzamento) {
   } while (pagina && ids.length < quante);
 
   const { risultati } = await inParallelo(ids, INSIEME, INTERVALLO_MS, async id => {
-    const m = await chiama(token, `${BASE}/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&fields=id,payload/headers`);
+    const m = await chiama(token, `${BASE}/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=List-Unsubscribe&metadataHeaders=List-Unsubscribe-Post&fields=id,payload/headers`);
     const intestazioni = m.payload?.headers || [];
     const valore = nome => intestazioni.find(h => h.name.toLowerCase() === nome)?.value || '';
-    return { id, ...separaMittente(valore('from')), oggetto: valore('subject') };
+    return {
+      id,
+      ...separaMittente(valore('from')),
+      oggetto: valore('subject'),
+      disiscrizione: leggiDisiscrizione(valore('list-unsubscribe'), valore('list-unsubscribe-post')),
+    };
   }, avanzamento);
   return risultati.filter(Boolean);
 }
@@ -109,5 +117,22 @@ export async function leggiGmail(token, cartella, quante, avanzamento) {
 export async function cestinaGmail(token, ids, avanzamento) {
   const { falliti } = await inParallelo(ids, INSIEME, INTERVALLO_MS,
     id => chiama(token, `${BASE}/messages/${id}/trash`, { method: 'POST' }), avanzamento);
+  return falliti;
+}
+
+// Blocca i mittenti con un filtro: le mail future vanno nel Cestino. Quelle già arrivate restano dove sono.
+// Un filtro già esistente conta come fatto. Restituisce gli indirizzi per cui il filtro non è stato creato.
+export async function bloccaGmail(token, indirizzi, avanzamento) {
+  const { falliti } = await inParallelo(indirizzi, 2, 500, async indirizzo => {
+    try {
+      await chiama(token, `${BASE}/settings/filters`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ criteria: { from: indirizzo }, action: { addLabelIds: ['TRASH'] } }),
+      });
+    } catch (errore) {
+      if (!/already exists/i.test(errore.message)) throw errore;
+    }
+  }, avanzamento);
   return falliti;
 }

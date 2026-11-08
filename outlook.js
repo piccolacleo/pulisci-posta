@@ -1,9 +1,10 @@
 // Hotmail (account Microsoft personali): accesso con codice e PKCE verso /consumers, nessun server, e chiamate a Microsoft Graph.
 
 import { chiama, inParallelo, salvaAccesso, leggiAccesso, cancellaAccesso } from './rete.js';
+import { leggiDisiscrizione } from './analisi.js';
 
 const AUTORITA = 'https://login.microsoftonline.com/consumers/oauth2/v2.0';
-const PERMESSI = 'openid https://graph.microsoft.com/User.Read https://graph.microsoft.com/Mail.ReadWrite';
+const PERMESSI = 'openid https://graph.microsoft.com/User.Read https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/MailboxSettings.ReadWrite';
 const GRAPH = 'https://graph.microsoft.com/v1.0';
 const CHIAVE = 'pulisci-posta.hotmail';
 const CHIAVE_RITORNO = 'pulisci-posta.hotmail.ritorno';
@@ -85,11 +86,16 @@ export async function indirizzoHotmail(token) {
   return io.mail || io.userPrincipalName;
 }
 
-// cartella: 'arrivo' | 'indesiderata'. Restituisce [{ id, nome, indirizzo, oggetto }], dalla più recente.
+function disiscrizioneDa(intestazioni) {
+  const valore = nome => (intestazioni || []).find(h => h.name?.toLowerCase() === nome)?.value || '';
+  return leggiDisiscrizione(valore('list-unsubscribe'), valore('list-unsubscribe-post'));
+}
+
+// cartella: 'arrivo' | 'indesiderata'. Restituisce [{ id, nome, indirizzo, oggetto, disiscrizione }], dalla più recente.
 export async function leggiHotmail(token, cartella, quante, avanzamento) {
   const nomeCartella = cartella === 'indesiderata' ? 'junkemail' : 'inbox';
-  const pagina = Math.min(200, quante);
-  let url = `${GRAPH}/me/mailFolders/${nomeCartella}/messages?$select=from,subject&$orderby=receivedDateTime%20desc&$top=${pagina}`;
+  const pagina = Math.min(100, quante);
+  let url = `${GRAPH}/me/mailFolders/${nomeCartella}/messages?$select=from,subject,internetMessageHeaders&$orderby=receivedDateTime%20desc&$top=${pagina}`;
   const messaggi = [];
   while (url && messaggi.length < quante) {
     const risposta = await chiama(token, url);
@@ -99,6 +105,7 @@ export async function leggiHotmail(token, cartella, quante, avanzamento) {
         nome: m.from?.emailAddress?.name || '',
         indirizzo: (m.from?.emailAddress?.address || '').toLowerCase(),
         oggetto: m.subject || '',
+        disiscrizione: disiscrizioneDa(m.internetMessageHeaders),
       });
     }
     url = risposta['@odata.nextLink'];
@@ -116,4 +123,26 @@ export async function cestinaHotmail(token, ids, avanzamento) {
       body: JSON.stringify({ destinationId: 'deleteditems' }),
     }), avanzamento);
   return falliti;
+}
+
+// Blocca i mittenti con una regola della posta in arrivo: le mail future vanno in Posta eliminata.
+// Quelle già arrivate restano dove sono. Una regola per gruppo di indirizzi, per non riempire l'elenco delle regole.
+// Restituisce gli indirizzi per cui la regola non è stata creata.
+export async function bloccaHotmail(token, indirizzi, avanzamento) {
+  const gruppi = [];
+  for (let i = 0; i < indirizzi.length; i += 25) gruppi.push(indirizzi.slice(i, i + 25));
+  const data = new Date().toISOString().slice(0, 10);
+  const { falliti } = await inParallelo(gruppi, 1, 300, gruppo => chiama(token,
+    `${GRAPH}/me/mailFolders/inbox/messageRules`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        displayName: `Pulisci posta: blocco ${data} ${gruppo[0]}`.slice(0, 120),
+        sequence: 1,
+        isEnabled: true,
+        conditions: { fromAddresses: gruppo.map(address => ({ emailAddress: { address } })) },
+        actions: { delete: true, stopProcessingRules: true },
+      }),
+    }), (fatti, totale) => avanzamento?.(Math.min(indirizzi.length, fatti * 25), indirizzi.length));
+  return falliti.flat();
 }

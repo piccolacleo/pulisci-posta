@@ -41,6 +41,20 @@ export async function chiama(token, url, opzioni = {}) {
   }
 }
 
+// Annullamento automatico (RFC 8058): una POST all'indirizzo https del mittente. Il browser non lascia leggere la
+// risposta di un altro sito, quindi si sa solo che la richiesta è partita, non che il mittente l'abbia accettata.
+export async function annullaUnClic(url) {
+  if (!/^https:\/\//i.test(url)) throw new Error('Indirizzo non sicuro');
+  await fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    credentials: 'omit',
+    referrerPolicy: 'no-referrer',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'List-Unsubscribe=One-Click',
+  });
+}
+
 // Esegue fn su ogni elemento, al massimo `insieme` alla volta e con almeno `intervalloMs` fra un avvio e l'altro.
 // Un errore di accesso ferma tutto; gli altri errori mettono l'elemento fra i falliti e si va avanti.
 export async function inParallelo(elementi, insieme, intervalloMs, fn, avanzamento) {
