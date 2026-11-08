@@ -28,3 +28,11 @@ Pagina web per il telefono che entra in una casella Gmail o Hotmail, raggruppa l
 - **Microsoft Entra**: registrazione "Solo account Microsoft personali", indirizzo di ritorno di tipo "Single-page application" `https://piccolacleo.github.io/pulisci-posta/`, permessi delegati `Mail.ReadWrite` e `MailboxSettings.ReadWrite` di Microsoft Graph.
 
 Pubblicata con GitHub Pages dal ramo `master`, cartella principale.
+
+## Stato (8 novembre 2026)
+
+- **Annulla iscrizione e Blocca** sono nel ramo `blocca-e-annulla-iscrizione` (pull request #1), non ancora su `master`: finché non si unisce, la pagina online resta com'era.
+- **Prima di unire**: il permesso `MailboxSettings.ReadWrite` è stato aggiunto in Microsoft Entra; lo scope `gmail.settings.basic` nella schermata di consenso Google va ancora confermato. Senza, l'accesso a Gmail fallisce.
+- **Dopo l'unione**: rientrare in Gmail e in Hotmail per concedere i permessi nuovi.
+- **Non provato su caselle vere**: la lettura dei link di annullamento è provata con esempi, il resto (filtro Gmail, regola Hotmail, richiesta automatica) no. Da provare prima su pochi mittenti.
+- **Da sapere**: Hotmail ora legge 100 mail per volta (prima 200) perché le intestazioni rendono le risposte più pesanti. Le mail già arrivate non vengono toccate da "Blocca" né da "Annulla iscrizione".
