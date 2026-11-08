@@ -34,7 +34,7 @@ body {
   font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--sfondo);
   color: var(--testo);
-  padding-bottom: 96px;
+  padding-bottom: 150px;
 }
 
 .testata {
@@ -147,6 +147,12 @@ summary { min-height: 40px; display: flex; align-items: center; color: var(--pri
 .indirizzo { overflow-wrap: anywhere; }
 .dettaglio { display: block; color: var(--tenue); font-size: 0.88rem; overflow-wrap: anywhere; }
 
+.azioni { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.azioni .pulsante { margin: 0; width: auto; padding: 0 14px; }
+.esito { list-style: none; margin: 0; padding: 0; }
+.esito li { padding: 8px 0; border-top: 1px solid var(--bordo); overflow-wrap: anywhere; }
+.esito a { color: var(--principale); font-weight: 600; }
+
 .barra {
   position: fixed;
   left: 0;
@@ -154,8 +160,9 @@ summary { min-height: 40px; display: flex; align-items: center; color: var(--pri
   bottom: 0;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px 12px;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   background: var(--superficie);
   border-top: 1px solid var(--bordo);

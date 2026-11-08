@@ -53,6 +53,11 @@
 
     <p class="messaggio" id="messaggio" role="status" hidden></p>
 
+    <section class="riquadro" id="esito" hidden>
+      <p id="esito-testo"></p>
+      <ul id="esito-lista" class="esito"></ul>
+    </section>
+
     <section id="risultati" hidden>
       <p id="riepilogo"></p>
       <p class="nota" id="nota-sospetti">Le segnalazioni sono solo un aiuto: anche nella posta indesiderata finiscono mittenti veri. Guarda prima di selezionare.</p>
@@ -63,7 +68,11 @@
 
   <footer class="barra" id="barra" hidden>
     <span id="conta-selezione"></span>
-    <button type="button" id="cestina" class="pulsante pericolo">Sposta nel cestino</button>
+    <div class="azioni">
+      <button type="button" id="disiscrivi" class="pulsante secondario">Annulla iscrizione</button>
+      <button type="button" id="blocca" class="pulsante secondario">Blocca</button>
+      <button type="button" id="cestina" class="pulsante pericolo">Sposta nel cestino</button>
+    </div>
   </footer>
 </body>
 </html>

@@ -80,6 +80,25 @@ export function separaMittente(testo) {
   return { nome: '', indirizzo: (solo ? solo[0] : valore).toLowerCase() };
 }
 
+// Legge le intestazioni List-Unsubscribe e List-Unsubscribe-Post (RFC 2369 e RFC 8058).
+// Restituisce null se la mail non ha un modo ufficiale per annullare l'iscrizione, altrimenti
+// { https, mailto, unClic }: `unClic` è vero solo se il mittente accetta l'annullamento con una richiesta
+// automatica (https + List-Unsubscribe-Post), senza pagine da aprire. Accetta solo https e mailto.
+export function leggiDisiscrizione(listUnsubscribe, listUnsubscribePost) {
+  const testo = (listUnsubscribe || '').trim();
+  if (!testo) return null;
+  let https = null;
+  let mailto = null;
+  for (const trovato of testo.matchAll(/<\s*([^<>\s]+)\s*>/g)) {
+    const indirizzo = trovato[1];
+    if (!https && /^https:\/\//i.test(indirizzo)) https = indirizzo;
+    else if (!mailto && /^mailto:/i.test(indirizzo)) mailto = indirizzo;
+  }
+  if (!https && !mailto) return null;
+  const unClic = Boolean(https) && /list-unsubscribe\s*=\s*one-click/i.test(listUnsubscribePost || '');
+  return { https, mailto, unClic };
+}
+
 export function dominioBase(indirizzo) {
   const host = (indirizzo.split('@')[1] || '').toLowerCase().replace(/\.+$/, '');
   if (!host) return '(senza dominio)';
@@ -153,11 +172,15 @@ export function raggruppa(messaggi, mioIndirizzo, segnala = true) {
     }
     let mittente = gruppo.mittenti.get(m.indirizzo);
     if (!mittente) {
-      mittente = { indirizzo: m.indirizzo, nomi: new Set(), ids: [], oggetti: [] };
+      mittente = { indirizzo: m.indirizzo, nomi: new Set(), ids: [], oggetti: [], disiscrizione: null };
       gruppo.mittenti.set(m.indirizzo, mittente);
     }
     gruppo.conteggio++;
     mittente.ids.push(m.id);
+    // Si tiene il modo migliore trovato nelle mail del mittente: meglio un clic solo di una pagina da aprire.
+    if (m.disiscrizione && (!mittente.disiscrizione || (m.disiscrizione.unClic && !mittente.disiscrizione.unClic))) {
+      mittente.disiscrizione = m.disiscrizione;
+    }
     if (m.nome) mittente.nomi.add(m.nome);
     if (m.oggetto && mittente.oggetti.length < 3) mittente.oggetti.push(m.oggetto);
     if (!segnala) continue;
@@ -185,7 +208,7 @@ export function raggruppa(messaggi, mioIndirizzo, segnala = true) {
       conteggio: g.conteggio,
       motivi: [...g.motivi.values()],
       mittenti: [...g.mittenti.values()]
-        .map(x => ({ indirizzo: x.indirizzo, nomi: [...x.nomi], ids: x.ids, oggetti: x.oggetti }))
+        .map(x => ({ indirizzo: x.indirizzo, nomi: [...x.nomi], ids: x.ids, oggetti: x.oggetti, disiscrizione: x.disiscrizione }))
         .sort((a, b) => b.ids.length - a.ids.length),
     }))
     .sort((a, b) => b.conteggio - a.conteggio);

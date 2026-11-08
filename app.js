@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import { raggruppa } from './analisi.js';
-import { ErroreAccesso } from './rete.js';
+import { ErroreAccesso, annullaUnClic, inParallelo } from './rete.js';
 import * as gmail from './gmail.js';
 import * as hotmail from './outlook.js';
 
@@ -26,6 +26,7 @@ const CASELLE = {
     indirizzo: gmail.indirizzoGmail,
     leggi: gmail.leggiGmail,
     cestina: gmail.cestinaGmail,
+    blocca: gmail.bloccaGmail,
     // quattro mail al secondo, sia per leggere sia per spostare (limite di Google)
     tempo: quante => minuti(quante / 4),
   },
@@ -38,6 +39,7 @@ const CASELLE = {
     indirizzo: hotmail.indirizzoHotmail,
     leggi: hotmail.leggiHotmail,
     cestina: hotmail.cestinaHotmail,
+    blocca: hotmail.bloccaHotmail,
     tempo: () => null,
   },
 };
@@ -110,6 +112,7 @@ function esci() {
   definizione().esci();
   stato[stato.attiva] = nuovaCasella();
   mostraMessaggio('');
+  mostraEsito('');
   disegna();
 }
 
@@ -128,6 +131,7 @@ async function analizza() {
     s.letti = messaggi.length;
     s.selezionati.clear();
     s.aperti.clear();
+    mostraEsito('');
   } catch (errore) {
     gestisciErrore(errore);
   } finally {
@@ -138,15 +142,15 @@ async function analizza() {
 function selezione() {
   const s = casella();
   const ids = [];
-  let mittenti = 0;
+  const scelti = [];
   for (const g of s.gruppi || []) {
     for (const m of g.mittenti) {
       if (!s.selezionati.has(m.indirizzo)) continue;
-      mittenti++;
+      scelti.push(m);
       ids.push(...m.ids);
     }
   }
-  return { ids, mittenti };
+  return { ids, mittenti: scelti.length, scelti };
 }
 
 async function cestina() {
@@ -178,6 +182,100 @@ async function cestina() {
     mostraMessaggio(`Fatto: ${spostati.size === 1 ? '1 mail spostata' : `${spostati.size} mail spostate`} ${def.destinazione}.`
       + (falliti.length === 1 ? ' Una non si è spostata: riprova.' : falliti.length ? ` ${falliti.length} non si sono spostate: riprova.` : ''),
     falliti.length > 0);
+  } catch (errore) {
+    gestisciErrore(errore);
+  } finally {
+    occupato(false);
+  }
+}
+
+function mostraEsito(testo, voci = []) {
+  $('#esito-testo').textContent = testo;
+  const lista = $('#esito-lista');
+  lista.replaceChildren(...voci);
+  $('#esito').hidden = !testo;
+}
+
+function erroreDiPermesso(errore) {
+  return /insufficient|scope|ErrorAccessDenied|Access is denied/i.test(errore?.message || '');
+}
+
+async function blocca() {
+  const s = casella();
+  const def = definizione();
+  const { scelti } = selezione();
+  if (!scelti.length) return;
+  const indirizzi = scelti.map(m => m.indirizzo);
+  const domanda = `Blocco ${indirizzi.length === 1 ? 'un mittente' : `${indirizzi.length} mittenti`}?`
+    + `\n\nLe loro mail future andranno ${def.destinazione}. Quelle già arrivate restano dove sono: per toglierle usa “Sposta nel cestino”.`
+    + '\n\nSe sbagli, il blocco si toglie dai filtri (Gmail) o dalle regole (Hotmail).';
+  if (!confirm(domanda)) return;
+
+  mostraMessaggio('');
+  mostraEsito('');
+  occupato(true, 'Creo i blocchi…');
+  try {
+    const falliti = await def.blocca(s.accesso.token, indirizzi,
+      (fatti, totale) => avanza(`Creo i blocchi: ${fatti} di ${totale}`, fatti / totale));
+    const fatti = indirizzi.length - falliti.length;
+    mostraMessaggio(`Fatto: ${fatti === 1 ? '1 mittente bloccato' : `${fatti} mittenti bloccati`}.`
+      + (falliti.length ? ` ${falliti.length === 1 ? 'Uno non è stato bloccato' : `${falliti.length} non sono stati bloccati`}: riprova.` : ''),
+    falliti.length > 0);
+  } catch (errore) {
+    if (erroreDiPermesso(errore)) {
+      def.esci();
+      stato[stato.attiva].accesso = null;
+      mostraMessaggio(`Manca il permesso per i blocchi: rientra in ${def.nome} e concedilo.`, true);
+    } else {
+      gestisciErrore(errore);
+    }
+  } finally {
+    occupato(false);
+  }
+}
+
+function voceLink(indirizzo, testo, href) {
+  const li = el('li');
+  const link = el('a', { href, textContent: testo, target: '_blank', rel: 'noopener noreferrer' });
+  li.append(el('span', { textContent: `${indirizzo}: ` }), link);
+  return li;
+}
+
+async function disiscrivi() {
+  const s = casella();
+  const { scelti } = selezione();
+  const conLink = scelti.filter(m => m.disiscrizione);
+  const unClic = conLink.filter(m => m.disiscrizione.unClic);
+  const aMano = conLink.filter(m => !m.disiscrizione.unClic);
+  const senza = scelti.filter(m => !m.disiscrizione);
+  if (!scelti.length) return;
+
+  const parti = [];
+  if (unClic.length) parti.push(`${unClic.length} ${unClic.length === 1 ? 'mittente accetta' : 'mittenti accettano'} l’annullamento automatico: lo invio io.`);
+  if (aMano.length) parti.push(`${aMano.length} ${aMano.length === 1 ? 'ha' : 'hanno'} solo una pagina o una mail da usare: ti do i link.`);
+  if (senza.length) parti.push(`${senza.length} non ${senza.length === 1 ? 'ha' : 'hanno'} un annullamento ufficiale: per quelli usa “Blocca”.`);
+  if (!confirm(`Annullo l’iscrizione?\n\n${parti.join('\n')}\n\nLe mail già arrivate non si toccano.`)) return;
+
+  mostraMessaggio('');
+  mostraEsito('');
+  occupato(true, 'Annullo le iscrizioni…');
+  try {
+    const { falliti } = await inParallelo(unClic, 3, 200, m => annullaUnClic(m.disiscrizione.https),
+      (fatti, totale) => avanza(`Annullo le iscrizioni: ${fatti} di ${totale}`, fatti / totale));
+    const partite = unClic.length - falliti.length;
+    const voci = [];
+    for (const m of falliti) voci.push(voceLink(m.indirizzo, 'Apri la pagina di annullamento', m.disiscrizione.https));
+    for (const m of aMano) {
+      const d = m.disiscrizione;
+      if (d.https) voci.push(voceLink(m.indirizzo, 'Apri la pagina di annullamento', d.https));
+      else voci.push(voceLink(m.indirizzo, 'Scrivi la mail di annullamento', d.mailto));
+    }
+    for (const m of senza) voci.push(el('li', { textContent: `${m.indirizzo}: nessun annullamento ufficiale, usa “Blocca”.` }));
+    const testo = (partite
+      ? `${partite === 1 ? 'Una richiesta partita' : `${partite} richieste partite`}: il mittente non risponde alla pagina, quindi non posso sapere se l’ha accettata. Se le mail continuano ad arrivare, blocca il mittente.`
+      : 'Nessuna richiesta automatica partita.')
+      + (voci.length ? ' Per gli altri:' : '');
+    mostraEsito(testo, voci);
   } catch (errore) {
     gestisciErrore(errore);
   } finally {
@@ -286,6 +384,8 @@ function aggiornaSelezione() {
   }
   const { ids } = selezione();
   $('#barra').hidden = ids.length === 0 || stato.occupato;
+  // Nella posta indesiderata niente "Annulla iscrizione": su una mail di spam conferma che l'indirizzo è vivo.
+  $('#disiscrivi').hidden = s.cartella === 'indesiderata';
   $('#conta-selezione').textContent = ids.length === 1 ? '1 mail selezionata' : `${ids.length} mail selezionate`;
 }
 
@@ -322,6 +422,8 @@ function disegna() {
   const tempo = def.tempo(Number($('#quante').value));
   $('#nota-tempo').textContent = tempo ? `${def.nome} ne legge circa quattro al secondo: ci vorrà ${tempo}.` : '';
   $('#cestina').disabled = stato.occupato;
+  $('#blocca').disabled = stato.occupato;
+  $('#disiscrivi').disabled = stato.occupato;
 
   disegnaGruppi();
 }
@@ -331,6 +433,7 @@ async function avvio() {
     b.addEventListener('click', () => {
       stato.attiva = b.dataset.casella;
       mostraMessaggio('');
+      mostraEsito('');
       disegna();
     });
   }
@@ -338,6 +441,8 @@ async function avvio() {
   $('#esci').addEventListener('click', esci);
   $('#analizza').addEventListener('click', analizza);
   $('#cestina').addEventListener('click', cestina);
+  $('#blocca').addEventListener('click', blocca);
+  $('#disiscrivi').addEventListener('click', disiscrivi);
   $('#quante').addEventListener('change', disegna);
   $('#solo-sospetti').addEventListener('change', disegnaGruppi);
 
