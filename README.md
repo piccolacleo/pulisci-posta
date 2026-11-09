@@ -27,3 +27,12 @@ Pagina web per il telefono che entra in una casella Gmail o Hotmail, raggruppa l
 - **Microsoft Entra**: registrazione "Solo account Microsoft personali", indirizzo di ritorno di tipo "Single-page application" `https://piccolacleo.github.io/pulisci-posta/`, permesso delegato `Mail.ReadWrite` di Microsoft Graph.
 
 Pubblicata con GitHub Pages dal ramo `master`, cartella principale.
+
+## Versioni
+
+Ogni versione è una cartella, pubblicata al suo indirizzo, e usa `config.js`, `analisi.js` e `rete.js` della cartella principale. Ogni cartella va aggiunta fra gli indirizzi di ritorno "Single-page application" della registrazione Microsoft.
+
+| Indirizzo | Cosa cambia |
+|---|---|
+| `https://piccolacleo.github.io/pulisci-posta/` | Versione 1: mittenti raggruppati per dominio, "Sposta nel cestino" |
+| `https://piccolacleo.github.io/pulisci-posta/v2/` | Versione 2: elenco a spunte dei mittenti, ricerca, "Spunta tutti gli indirizzi di un dominio" (non per le caselle personali come gmail.com), "Blocca e sposta": filtro Gmail (permesso `gmail.settings.basic`) o regola Hotmail (permesso `MailboxSettings.ReadWrite`) per le mail future, e cestino per quelle già arrivate. Microsoft applica le regole alle mail che arrivano nella Posta in arrivo |

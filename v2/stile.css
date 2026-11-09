@@ -1,0 +1,58 @@
+/* Versione 2: si appoggia allo stile della versione 1 (../stile.css) e aggiunge l'elenco a spunte. */
+
+body { padding-bottom: 150px; }
+
+.versione { font-size: 0.85rem; font-weight: 600; color: var(--tenue); }
+
+.cerca input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  background: var(--superficie);
+  color: var(--testo);
+  font: inherit;
+}
+
+.comandi { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 8px 0; }
+
+.piccolo {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--principale);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.elenco { list-style: none; margin: 0; padding: 0; background: var(--superficie); border: 1px solid var(--bordo); border-radius: 12px; }
+.elenco > li { padding: 10px 12px; border-top: 1px solid var(--bordo); }
+.elenco > li:first-child { border-top: 0; }
+.elenco > li.scelto { background: color-mix(in srgb, var(--principale) 10%, transparent); }
+.elenco label { display: flex; gap: 12px; align-items: flex-start; }
+.elenco .testo { flex: 1; min-width: 0; }
+.elenco .indirizzo { font-weight: 600; }
+
+.segni { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0 34px; }
+.segno { font-size: 0.82rem; padding: 2px 8px; border-radius: 999px; background: var(--sospetto-sfondo); color: var(--sospetto-testo); }
+.segno.bloccato { background: transparent; color: var(--tenue); border: 1px solid var(--bordo); }
+
+.stesso-dominio {
+  margin: 6px 0 0 34px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px dashed var(--bordo);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--principale);
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.azioni { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.azioni .pulsante { margin: 0; width: auto; padding: 0 14px; }
+.barra { flex-wrap: wrap; gap: 8px 12px; }

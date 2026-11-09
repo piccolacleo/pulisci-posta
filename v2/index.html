@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f5fbf">
+  <title>Pulisci posta 2</title>
+  <link rel="icon" href="../icona.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../icona-192.png">
+  <link rel="stylesheet" href="../stile.css">
+  <link rel="stylesheet" href="stile.css">
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="testata">
+    <h1>Pulisci posta <span class="versione">versione 2</span></h1>
+    <nav class="schede" aria-label="Casella">
+      <button type="button" class="scheda" data-casella="gmail" aria-pressed="true">Gmail</button>
+      <button type="button" class="scheda" data-casella="hotmail" aria-pressed="false">Hotmail</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="riquadro" id="accesso">
+      <p id="stato-accesso"></p>
+      <button type="button" id="entra" class="pulsante principale"></button>
+      <button type="button" id="esci" class="pulsante secondario" hidden>Esci</button>
+    </section>
+
+    <section class="riquadro" id="scelta" hidden>
+      <fieldset class="cartelle">
+        <legend>Quale cartella</legend>
+        <label><input type="radio" name="cartella" value="arrivo" checked> Posta in arrivo</label>
+        <label><input type="radio" name="cartella" value="indesiderata"> Posta indesiderata</label>
+      </fieldset>
+      <label class="quante">Quante mail guardare
+        <select id="quante">
+          <option value="200">le ultime 200</option>
+          <option value="500" selected>le ultime 500</option>
+          <option value="1000">le ultime 1000</option>
+          <option value="2000">le ultime 2000</option>
+        </select>
+      </label>
+      <p class="nota" id="nota-tempo"></p>
+      <button type="button" id="analizza" class="pulsante principale">Elenca i mittenti</button>
+    </section>
+
+    <section class="riquadro" id="avanzamento" hidden aria-live="polite">
+      <p id="testo-avanzamento"></p>
+      <progress id="barra-avanzamento" max="100" value="0"></progress>
+    </section>
+
+    <p class="messaggio" id="messaggio" role="status" hidden></p>
+
+    <section id="risultati" hidden>
+      <p id="riepilogo"></p>
+      <p class="nota" id="nota-sospetti">I segni “sospetto” sono solo un aiuto: anche nella posta indesiderata finiscono mittenti veri. Guarda prima di spuntare.</p>
+      <div class="cerca">
+        <input type="search" id="cerca" placeholder="Cerca un indirizzo, un nome o un dominio" autocomplete="off" aria-label="Cerca">
+      </div>
+      <div class="comandi">
+        <label class="filtro" id="filtro-sospetti"><input type="checkbox" id="solo-sospetti"> Solo i sospetti</label>
+        <button type="button" id="spunta-mostrati" class="piccolo" hidden></button>
+        <button type="button" id="togli-spunte" class="piccolo" hidden>Togli tutte le spunte</button>
+      </div>
+      <ul id="elenco" class="elenco"></ul>
+    </section>
+  </main>
+
+  <footer class="barra" id="barra" hidden>
+    <span id="conta-selezione"></span>
+    <div class="azioni">
+      <button type="button" id="cestina" class="pulsante secondario">Sposta nel cestino</button>
+      <button type="button" id="blocca" class="pulsante pericolo">Blocca e sposta</button>
+    </div>
+  </footer>
+</body>
+</html>
