@@ -4,6 +4,7 @@
 import { CONFIG } from '../config.js';
 import { raggruppa } from '../analisi.js';
 import { ErroreAccesso } from '../rete.js';
+import { registraAccesso } from '../registro.js';
 import * as gmail from './gmail.js';
 import * as hotmail from './outlook.js';
 
@@ -108,6 +109,7 @@ async function dopoAccesso(nomeCasella, accesso) {
   s.accesso = accesso;
   try {
     s.indirizzo = await CASELLE[nomeCasella].indirizzo(accesso.token);
+    registraAccesso(nomeCasella, s.indirizzo, '2');
   } catch (errore) {
     gestisciErrore(errore, nomeCasella);
   }
