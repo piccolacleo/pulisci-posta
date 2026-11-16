@@ -18,6 +18,7 @@ Pagina web per il telefono che entra in una casella Gmail o Hotmail, raggruppa l
 | `outlook.js` | Accesso agli account Microsoft personali (codice con PKCE) e Microsoft Graph, permesso `Mail.ReadWrite` |
 | `rete.js` | Chiamate con ripetizione sui limiti di frequenza, ritmo regolato, accesso tenuto solo nella scheda aperta |
 | `config.js` | I due identificativi delle registrazioni presso Google e Microsoft, e l'indirizzo del registro degli accessi |
+| `privacy.html` | Informativa sulla privacy, richiesta dalla pagina "Branding" di Google Auth Platform e collegata in fondo alla versione 2 |
 | `registro.js`, `registro/Codice.gs` | Registro degli accessi (solo versione 2): a ogni ingresso la pagina manda casella, indirizzo e versione a un'applicazione web Apps Script, che li scrive in un Foglio Google di chi pubblica la pagina. Nessuna mail passa di lì; se l'indirizzo è vuoto il registro è spento |
 
 ## Configurazione
