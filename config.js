@@ -6,5 +6,5 @@ export const CONFIG = {
   // Microsoft Entra: "ID applicazione (client)", solo account personali, ritorno "Single-page application"
   microsoftClientId: '8357baeb-5dc9-4dec-ad4a-b8e535354785',
   // Registro degli accessi: indirizzo dell'applicazione web Apps Script (registro/Codice.gs). Vuoto = nessun registro.
-  registroUrl: '',
+  registroUrl: 'https://script.google.com/macros/s/AKfycbz_SGRNxiyPBNNioNwo9BFI6uaKaEczKlDQKMmAFB3SGJBqhrYNP4y8AcM034dfLmwO/exec',
 };
